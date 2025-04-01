@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/rodrigo-georgetti/flexxus_api_CRUD#readme",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "morgan": "^1.10.0",
     "pg": "^8.14.1"
