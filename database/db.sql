@@ -17,3 +17,11 @@ INSERT INTO article (name, brand)
         ('KEYBOARD','LOGITECH'),
         ('VIDEO CARD','NVIDIA'),
         ('VIDEO CARD','AMD');
+
+
+        CREATE TABLE user (
+    id SERIAL PRIMARY KEY,
+    user_name VARCHAR(80) NOT NULL,
+    password VARCHAR(80) NOT NULL,
+    modification_date TIMESTAMP
+);
