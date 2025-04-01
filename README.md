@@ -1,2 +1,1 @@
-# flexxus_api_CRUD
-Prueba técnica backend con una api CRUD
+#Nodejs postgresql restapi for Flexxus 

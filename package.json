@@ -1,0 +1,27 @@
+{
+  "name": "flexxus_api_crud",
+  "version": "1.0.0",
+  "description": "Prueba técnica backend con una api CRUD",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --env-file .env --watch src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodrigo-georgetti/flexxus_api_CRUD.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodrigo-georgetti/flexxus_api_CRUD/issues"
+  },
+  "homepage": "https://github.com/rodrigo-georgetti/flexxus_api_CRUD#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.14.1"
+  }
+}
