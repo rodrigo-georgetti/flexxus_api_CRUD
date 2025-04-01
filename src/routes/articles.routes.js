@@ -10,7 +10,9 @@ const router = Router();
 
 // Ruta para obtener artículos con filtros
 router.get("/article", getArticles);
-
+router.get("/", (req, res) =>{
+    res.send("hola mundo")
+})
 // Ruta para crear un nuevo artículo
 router.post("/article", createArticle);
 
