@@ -9,7 +9,7 @@ const options = {
       version: "1.0.0",
       description: "Documentación de la API de Flexxus con Swagger",
     },
-    servers: [{ url: "http://localhost:3000" }],
+    servers: [{ url: "https://flexxus-api-crud.onrender.com/" }],
     components: {
       securitySchemes: {
         BearerAuth: {
