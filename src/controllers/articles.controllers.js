@@ -1,112 +1,73 @@
-import Article from '../models/article.js';
+import {
+  getArticlesService,
+  createArticleService,
+  updateArticleService,
+  deleteArticleService,
+} from "../services/articles.services.js";
 
-// Obtener artículos con filtros
+// Controlador para obtener artículos con filtros
 export const getArticles = async (req, res) => {
-    try {
-        const { name, activation_status, exact } = req.query;
-        
-        const where = {}; // Objeto para condiciones dinámicas
-
-        // Si se ha enviado un filtro de estado de activación
-        if (activation_status !== undefined) {
-            where.activation_status = activation_status === "true"; // Convierte a booleano
-        }
-
-        // Si se ha enviado un filtro de nombre
-        if (name) {
-            if (exact === "true") {
-                where.name = name; // Búsqueda exacta
-            } else {
-                where.name = { [Sequelize.Op.iLike]: `%${name}%` }; // Coincidencia parcial (case insensitive)
-            }
-        }
-
-        // Buscar los artículos
-        const articles = await Article.findAll({
-            where,
-            order: [["modification_date", "DESC"]],
-        });
-
-        res.json(articles);
-    } catch (error) {
-        console.error("Error al obtener artículos:", error);
-        res.status(500).json({ message: "Error en el servidor", error: error.message });
-    }
+  try {
+    const { name, activation_status, exact } = req.query;
+    const articles = await getArticlesService(name, activation_status, exact);
+    res.json(articles);
+  } catch (error) {
+    console.error("Error al obtener artículos:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error en el servidor", error: error.message });
+  }
 };
 
-// Crear un nuevo artículo
+// Controlador para crear un nuevo artículo
 export const createArticle = async (req, res) => {
+  try {
     const { name, brand } = req.body;
-    if (!name || !brand) {
-        return res.status(400).json({ message: "Nombre y Marca son requeridos" });
-    }
+    if (!name || !brand)
+      return res.status(400).json({ message: "Nombre y Marca son requeridos" });
 
-    try {
-        // Crear el artículo con Sequelize
-        const article = await article.create({
-            name,
-            brand,
-            activation_status: true, // Por defecto, activado
-        });
-
-        res.status(201).json({ message: "Artículo creado", article });
-    } catch (error) {
-        console.error("Error al crear artículo:", error);
-        res.status(500).json({ message: "Error en el servidor", error: error.message });
-    }
+    const article = await createArticleService(name, brand);
+    res.status(201).json({ message: "Artículo creado", article });
+  } catch (error) {
+    console.error("Error al crear artículo:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error en el servidor", error: error.message });
+  }
 };
 
-// Actualizar un artículo
+// Controlador para actualizar un artículo
 export const updateArticle = async (req, res) => {
+  try {
     const { id } = req.params;
     const { name, brand, activation_status } = req.body;
-    const modification_date = new Date();
 
-    try {
-        // Buscar el artículo por ID
-        const article = await article.findByPk(id);
-        
-        if (!article) {
-            return res.status(404).json({ message: "Artículo no encontrado" });
-        }
-
-        // Actualizar el artículo con Sequelize
-        await article.update({
-            name,
-            brand,
-            activation_status,
-            modification_date,
-        });
-
-        res.json({ message: "Artículo actualizado", article });
-    } catch (error) {
-        console.error("Error al actualizar artículo:", error);
-        res.status(500).json({ message: "Error en el servidor", error: error.message });
-    }
+    const article = await updateArticleService(
+      id,
+      name,
+      brand,
+      activation_status
+    );
+    res.json({ message: "Artículo actualizado", article });
+  } catch (error) {
+    console.error("Error al actualizar artículo:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error en el servidor", error: error.message });
+  }
 };
 
-// Eliminar un artículo (desactivarlo)
+// Controlador para desactivar un artículo
 export const deleteArticle = async (req, res) => {
+  try {
     const { id } = req.params;
 
-    try {
-        // Buscar el artículo por ID
-        const article = await artcle.findByPk(id);
-
-        if (!article) {
-            return res.status(404).json({ message: "Artículo no encontrado" });
-        }
-
-        // Desactivar el artículo (actualizar el estado de activación)
-        await article.update({ activation_status: false });
-
-        res.json({
-            message: "Artículo desactivado correctamente",
-            article,
-        });
-    } catch (error) {
-        console.error("Error al desactivar artículo:", error);
-        res.status(500).json({ message: "Error en el servidor", error: error.message });
-    }
+    const article = await deleteArticleService(id);
+    res.json({ message: "Artículo desactivado correctamente", article });
+  } catch (error) {
+    console.error("Error al desactivar artículo:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error en el servidor", error: error.message });
+  }
 };
-

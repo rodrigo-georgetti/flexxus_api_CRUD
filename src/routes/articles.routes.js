@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticateJWT } from "../middlewares/auth.middleware.js";
 import {
   getArticles,
   createArticle,
@@ -7,99 +8,194 @@ import {
 } from "../controllers/articles.controllers.js";
 
 const router = Router();
-const JWT_SECRET = 'tu_clave_secreta'
-// Ruta para obtener artículos con filtros
 
-router.get('/', (req, res) => {
-  res.send('¡Hola, Mundo!');
-});
+/**
+ * @swagger
+ * tags:
+ *   name: Articles
+ *   description: API para gestionar artículos
+ */
 
-// Endpoint para registro de usuarios
-router.post('/register', async (req, res) => {
-  const { user_name, password } = req.body;
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Articles:
+ *       type: object
+ *       required:
+ *         - name
+ *         - brand
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Nombre del artículo
+ *         brand:
+ *           type: string
+ *           description: Marca del artículo
+ *         activation_status:
+ *           type: boolean
+ *           description: Estado activado/desactivado
+ *         modification_date:
+ *           type: date
+ *           description: fecha de modificación del usuario
+ *       example:
+ *         name: TV
+ *         brand: SAMSUNG
+ */
 
-  // Validar que se proporcionaron los datos necesarios
-  if (!user_name || !password) {
-    return res.status(400).json({ message: "El nombre de usuario y la contraseña son requeridos" });
-  }
+/**
+ * @swagger
+ * /api/articles:
+ *   get:
+ *     summary: Obtener artículos con filtros
+ *     description: Devuelve una lista de artículos según los filtros proporcionados.
+ *     tags: [Articles]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: activation_status
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Estado de activación del artículo (true/false). Si se proporciona, filtra por este estado.
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Nombre del artículo. Si se usa junto con `exact=true`, la búsqueda es exacta; de lo contrario, busca coincidencias parciales.
+ *       - in: query
+ *         name: exact
+ *         schema:
+ *           type: boolean
+ *         required: false
+ *         description: Si es `true`, buscará el nombre exacto. Si es `false` o no está presente, buscará coincidencias parciales.
+ *     responses:
+ *       200:
+ *         description: Lista de artículos encontrados.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Article'
+ *       400:
+ *         description: Parámetros inválidos o faltantes.
+ *       500:
+ *         description: Error en el servidor.
+ */
+router.get("/", authenticateJWT, getArticles);
 
-  try {
-    // Verificar si el nombre de usuario ya existe
-    const existingUser = await User.findOne({ where: { user_name } });
-    if (existingUser) {
-      return res.status(400).json({ message: "El nombre de usuario ya está en uso" });
-    }
+/**
+ * @swagger
+ * /api/articles:
+ *   post:
+ *     summary: Crear un nuevo artículo
+ *     description: Crea un nuevo artículo con nombre y marca.
+ *     tags: [Articles]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - brand
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "TV"
+ *               brand:
+ *                 type: string
+ *                 example: "PHILIPS"
+ *     responses:
+ *       201:
+ *         description: Artículo creado exitosamente.
+ *       400:
+ *         description: Datos inválidos.
+ *       401:
+ *         description: No autorizado (falta el token o es inválido).
+ *       500:
+ *         description: Error en el servidor.
+ */
+router.post("/", authenticateJWT, createArticle);
 
-    // Crear un nuevo usuario
-    const newUser = await User.create({ user_name, password });
-    return res.status(201).json({
-      message: "Usuario creado exitosamente",
-      user: {
-        id: newUser.id,
-        user_name: newUser.user_name,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Hubo un error al registrar el usuario" });
-  }
-});
+/**
+ * @swagger
+ * /api/articles/{id}:
+ *   put:
+ *     summary: Actualizar un artículo
+ *     description: Modifica los datos de un artículo existente.
+ *     tags: [Articles]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del artículo a actualizar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Nuevo Nombre"
+ *               brand:
+ *                 type: string
+ *                 example: "Nueva Marca"
+ *               activation_status:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Artículo actualizado exitosamente.
+ *       400:
+ *         description: Datos inválidos.
+ *       401:
+ *         description: No autorizado (falta el token o es inválido).
+ *       404:
+ *         description: Artículo no encontrado.
+ *       500:
+ *         description: Error en el servidor.
+ */
+router.put("/:id", authenticateJWT, updateArticle);
 
-router.post('/login', async (req, res) => {
-  const { user_name, password } = req.body;
-
-  // Validar que se proporcionaron los datos necesarios
-  if (!user_name || !password) {
-    return res.status(400).json({ message: "El nombre de usuario y la contraseña son requeridos" });
-  }
-
-  try {
-    // Buscar al usuario por nombre de usuario
-    const user = await User.findOne({ where: { user_name } });
-    if (!user) {
-      return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
-    }
-
-    // Comparar la contraseña proporcionada con la almacenada en la base de datos
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
-    }
-
-    // Si las credenciales son correctas, generar el JWT
-    const token = jwt.sign(
-      { id: user.id, user_name: user.user_name },  // Datos del usuario que queremos incluir en el JWT
-      JWT_SECRET,  // Clave secreta para firmar el token
-      { expiresIn: '1h' }  // Expiración del token (opcional)
-    );
-
-    // Responder con el token
-    return res.status(200).json({
-      message: "Inicio de sesión exitoso",
-      token,  // El token generado
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Hubo un error al procesar la solicitud" });
-  }
-});
-
-
-
-
-
- router.get("/article", getArticles);
-
-
-// // Ruta para crear un nuevo artículo
-// router.post("/article", createArticle);
-
-// // Ruta para actualizar un artículo
-// router.put("/article/:id", updateArticle);
-
-// // Ruta para desactivar (eliminar) un artículo
-// router.delete("/article/:id", deleteArticle);
+/**
+ * @swagger
+ * /api/articles/{id}:
+ *   delete:
+ *     summary: Desactivar un artículo
+ *     description: Desactiva un artículo cambiando su estado de activación a `false`.
+ *     tags: [Articles]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del artículo a desactivar.
+ *     responses:
+ *       200:
+ *         description: Artículo desactivado exitosamente.
+ *       401:
+ *         description: No autorizado (falta el token o es inválido).
+ *       404:
+ *         description: Artículo no encontrado.
+ *       500:
+ *         description: Error en el servidor.
+ */
+router.delete("/:id", authenticateJWT, deleteArticle);
 
 export default router;
-
